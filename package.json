@@ -1,50 +1,24 @@
 {
-  "name": "server",
+  "name": "finviz",
   "version": "1.0.0",
-  "description": "Backend",
+  "engines": {
+    "node": "16.15.0"
+  },
+  "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
-    "dev": "pm2 start index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon index.js"
   },
-  "keywords": [
-    "node.js",
-    "express",
-    "login",
-    "registration",
-    "authentication",
-    "authorization"
-  ],
-  "author": "Monster",
+  "keywords": [],
+  "author": "",
   "license": "ISC",
   "dependencies": {
-    "@stonksjs/finviz": "^3.0.1",
-    "axios": "^1.1.3",
-    "bcrypt": "^5.1.0",
     "body-parser": "^1.20.0",
-    "cheerio": "^1.0.0-rc.12",
-    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
-    "crypto-js": "^4.1.1",
-    "dotenv": "^16.0.2",
-    "easy-https": "^1.0.1",
     "express": "^4.18.1",
-    "express-session": "^1.17.3",
-    "finviz-screener": "^1.1.3",
-    "fs": "^0.0.1-security",
-    "helmet": "^6.0.0",
-    "html-pdf": "^3.0.1",
-    "multer": "^1.4.5-lts.1",
-    "mysql": "github:felixge/node-mysql",
-    "nanoid": "^4.0.0",
-    "node-finviz-screener": "^0.0.6",
-    "nodemailer": "^6.9.8",
-    "nodemon": "^2.0.16",
-    "os": "^0.1.2",
-    "path": "^0.12.7"
-  },
-  "devDependencies": {
-    "uuid": "^2.0.3"
+    "mongodb": "^4.7.0",
+    "mongoose": "^6.4.4",
+    "nodemon": "^2.0.22",
+    "puppeteer": "^14.1.1"
   }
 }
