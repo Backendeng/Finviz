@@ -7,11 +7,7 @@ const cors = require("cors");
 const db = require("./api/models");
 var PORT = process.env.PORT || 8080;
 
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-  })
-);
+app.use(cors());
 
 // Make sure you place body-parser before your CRUD handlers!
 
