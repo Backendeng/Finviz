@@ -7,7 +7,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "pm2 index.js"
+    "start": "pm2 start index.js"
   },
   "keywords": [],
   "author": "",
