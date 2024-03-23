@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 const app = express();
 const cors = require("cors");
 const db = require("./api/models");
-var PORT = process.env.PORT || 8001;
+var PORT = process.env.PORT || 8002;
 
 app.use(cors({}));
 
