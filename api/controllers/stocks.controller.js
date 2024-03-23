@@ -131,10 +131,9 @@ exports.findAll = async (req, res) => {
         } else {
           parameterData = `${getData}&r=${i * 20 + 1}`;
         }
-        console.log(parameterData);
-        // parameterData = `${getData + (i * 20 + 1)}`;
-        const stocksDetails = await stockInfo(parameterData); // Assuming stockInfo fetches data
-        console.log(stocksDetails);
+
+        // console.log()
+        const stocksDetails = await stockInfo(parameterData);
         // return
         for (const stockDetail of stocksDetails) {
           const stockData = {
@@ -149,11 +148,11 @@ exports.findAll = async (req, res) => {
             change: stockDetail.change.value,
             volume: stockDetail.volume.value,
           };
-          const newStock = new Stocks(stockData);
-          await newStock.save();
-          savedStocks.push(stockData); // Add formatted data to an array
+          savedStocks.push(stockData);
         }
       }
+      const newStocksDocument = new Stocks({ alldatas: savedStocks });
+      await newStocksDocument.save();
       return res.status(201).send({ message: "success", data: savedStocks });
     } else {
       const allStocks = await Stocks.find({});

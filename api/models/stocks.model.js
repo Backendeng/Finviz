@@ -1,4 +1,5 @@
-module.exports = (mongoose) => {
+// Define the schema and model for storing all the stock data
+module.exports = mongoose => {
   const StockSchema = new mongoose.Schema({
     ticker: String,
     company: String,
@@ -11,6 +12,13 @@ module.exports = (mongoose) => {
     change: String,
     volume: String,
   });
-  const Stocks = mongoose.model("Stock", StockSchema);
+
+  const Schema = new mongoose.Schema({
+    alldatas: [StockSchema], // Embedding StockSchema within the main schema
+  });
+
+  // Define the model using the main schema
+  const Stocks = mongoose.model("Stocks", Schema); // Use "Stocks" as the model name
+
   return Stocks;
 };
