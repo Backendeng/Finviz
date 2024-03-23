@@ -113,32 +113,55 @@ exports.update = (req, res) => {
     });
 };
 
+const isDatabaseEmpty = async () => {
+  const count = await Stocks.countDocuments();
+  return count === 0;
+};
+
 exports.findAll = async (req, res) => {
+  const getData = req.body.get_data;
+  var parameterData;
   try {
-    const stocksDetails = await stockInfo(req.body.get_data); // This fetches details for a stock with code 111
-
-    // Map each stock detail to the desired format
-    const stocks = stocksDetails.map((response) => ({
-      ticker: response.ticker.value,
-      company: response.company.value,
-      sector: response.sector.value,
-      industry: response.industry.value,
-      country: response.country.value,
-      marketCap: response.marketcap.value,
-      pe: response.pe.value,
-      price: response.price.value,
-      change: response.change.value,  
-      volume: response.volume.value,
-      image: response.image.value, // Assuming this is how you're handling images
-    }));
-
-    // Send back the array of formatted stock details
-    res.status(200).send(stocks);
+    const isEmpty = await isDatabaseEmpty();
+    const savedStocks = [];
+    if (isEmpty) {
+      for (let i = 0; i < 476; i++) {
+        if (i == 0) {
+          parameterData = `${getData}`;
+        } else {
+          parameterData = `${getData}&r=${i * 20 + 1}`;
+        }
+        console.log(parameterData);
+        // parameterData = `${getData + (i * 20 + 1)}`;
+        const stocksDetails = await stockInfo(parameterData); // Assuming stockInfo fetches data
+        console.log(stocksDetails);
+        // return
+        for (const stockDetail of stocksDetails) {
+          const stockData = {
+            ticker: stockDetail.ticker.value,
+            company: stockDetail.company.value,
+            sector: stockDetail.sector.value,
+            industry: stockDetail.industry.value,
+            country: stockDetail.country.value,
+            marketcap: stockDetail.marketcap.value,
+            pe: stockDetail.pe.value,
+            price: stockDetail.price.value,
+            change: stockDetail.change.value,
+            volume: stockDetail.volume.value,
+          };
+          const newStock = new Stocks(stockData);
+          await newStock.save();
+          savedStocks.push(stockData); // Add formatted data to an array
+        }
+      }
+      return res.status(201).send({ message: "success", data: savedStocks });
+    } else {
+      const allStocks = await Stocks.find({});
+      return res.status(200).send({ message: "success", data: allStocks });
+    }
   } catch (error) {
-    console.error("Error fetching stock information:", error);
-    res.status(500).send({
-      message: "Error retrieving stock information",
-    });
+    console.error(error);
+    return res.status(500).send({ message: "error" });
   }
 };
 

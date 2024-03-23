@@ -21,16 +21,16 @@ require("./api/routes/stocks.routes")(app);
 require("./api/routes/news.routes")(app);
 // set port, listen for requests
 
-// db.mongoose
-//   .connect(db.url, {
-//     useNewUrlParser: true,
-//     useUnifiedTopology: true,
-//   })
-//   .then(() => {})
-//   .catch((err) => {
-//     console.error("Connection error", err);
-//     process.exit();
-//   });
+db.mongoose
+  .connect(db.url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {})
+  .catch((err) => {
+    console.error("Connection error", err);
+    process.exit();
+  });
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
