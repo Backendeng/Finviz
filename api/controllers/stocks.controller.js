@@ -125,7 +125,7 @@ exports.findAll = async (req, res) => {
     const isEmpty = await isDatabaseEmpty();
     const savedStocks = [];
     if (isEmpty) {
-      for (let i = 0; i < 476; i++) {
+      for (let i = 0; i < 100; i++) {
         if (i == 0) {
           parameterData = `${getData}`;
         } else {
@@ -151,12 +151,33 @@ exports.findAll = async (req, res) => {
           savedStocks.push(stockData);
         }
       }
+      const count = await Stocks.countDocuments({}); // Count all documents
+      console.log(count);
       const newStocksDocument = new Stocks({ alldatas: savedStocks });
       await newStocksDocument.save();
-      return res.status(201).send({ message: "success", data: savedStocks });
+      return res
+        .status(201)
+        .send({ message: "success", data: savedStocks, datacount: count });
     } else {
-      const allStocks = await Stocks.find({});
-      return res.status(200).send({ message: "success", data: allStocks });
+      const allStocks = await Stocks.aggregate([
+        {
+          $project: {
+            alldatas: { $slice: ["$alldatas", 0, 20] }, // Slice the first 20 elements
+          },
+        },
+      ]);
+
+      const count = await Stocks.aggregate([
+        {
+          $project: {
+            alldatasCount: { $size: "$alldatas" }, // Get the count of alldatas array
+          },
+        },
+      ]);
+
+      return res
+        .status(200)
+        .send({ message: "success", data: allStocks, datacount: count });
     }
   } catch (error) {
     console.error(error);
@@ -164,6 +185,187 @@ exports.findAll = async (req, res) => {
   }
 };
 
+exports.GetPage = async (req, res) => {
+  const getData = req.body.page_value;
+  // console.log(
+  //   req.body.include_search_value.length,
+  //   req.body.exclude_search_value
+  // );
+  // return;
+  if (
+    req.body.include_search_value.length > 0 ||
+    req.body.exclude_search_value.length > 0
+  ) {
+    try {
+      const searchValues =
+        req.body.include_search_value.length > 0
+          ? req.body.include_search_value
+          : req.body.exclude_search_value;
+      // return;
+      const regexPatterns = searchValues.map(
+        (value) => new RegExp(`${value}`, "i")
+      );
+
+      let allStocks = []; // Array to store all stocks
+
+      const batchSize = 100; // Adjust the batch size as needed
+
+      // Process documents in batches for each search value
+      for (const pattern of regexPatterns) {
+        let skip = 0;
+
+        // Fetch documents matching the current search value
+        while (true) {
+          const batchStocks = await Stocks.aggregate([
+            // Unwind the array field
+            { $unwind: "$alldatas" },
+            // Match documents where the array field exists and matches the current search value
+            {
+              $match: {
+                "alldatas.sector": pattern,
+              },
+            },
+            // Skip already processed documents
+            { $skip: skip },
+            // Limit the number of documents processed at a time
+            { $limit: batchSize },
+            // Project to include only the fields from alldatas
+            {
+              $project: {
+                _id: 0,
+                change: "$alldatas.change",
+                company: "$alldatas.company",
+                country: "$alldatas.country",
+                industry: "$alldatas.industry",
+                marketcap: "$alldatas.marketcap",
+                pe: "$alldatas.pe",
+                price: "$alldatas.price",
+                sector: "$alldatas.sector",
+                ticker: "$alldatas.ticker",
+                volume: "$alldatas.volume",
+              },
+            },
+          ]);
+
+          allStocks = allStocks.concat(batchStocks);
+
+          // Check if there are more documents to process
+          if (batchStocks.length < batchSize) {
+            break;
+          }
+
+          // Increment skip for the next batch
+          skip += batchSize;
+        }
+      }
+      // console.log(allStocks);
+      // console.log(getData);
+
+      // return;
+      // Send only the first 20 items to the front end
+
+      const slicedData = allStocks.slice(20 * Number(getData), 20 * Number(getData) + 20);
+
+      return res.status(200).send({
+        message: "success",
+        data: slicedData,
+        datacount: allStocks.length,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).send({ message: "error" });
+    }
+  } else {
+    try {
+      const allStocks = await Stocks.aggregate([
+        {
+          $project: {
+            alldatas: { $slice: ["$alldatas", 20 * getData, 20] },
+          },
+        },
+      ]);
+      return res.status(200).send(allStocks);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).send({ message: "error" });
+    }
+  }
+};
+
+exports.SearchPage = async (req, res) => {
+  console.log(req.body.search_value);
+  try {
+    const searchValues = req.body.search_value;
+    const regexPatterns = searchValues.map(
+      (value) => new RegExp(`${value}`, "i")
+    );
+
+    let allStocks = []; // Array to store all stocks
+
+    const batchSize = 100; // Adjust the batch size as needed
+
+    // Process documents in batches for each search value
+    for (const pattern of regexPatterns) {
+      let skip = 0;
+
+      // Fetch documents matching the current search value
+      while (true) {
+        const batchStocks = await Stocks.aggregate([
+          // Unwind the array field
+          { $unwind: "$alldatas" },
+          // Match documents where the array field exists and matches the current search value
+          {
+            $match: {
+              "alldatas.sector": pattern,
+            },
+          },
+          // Skip already processed documents
+          { $skip: skip },
+          // Limit the number of documents processed at a time
+          { $limit: batchSize },
+          // Project to include only the fields from alldatas
+          {
+            $project: {
+              _id: 0,
+              change: "$alldatas.change",
+              company: "$alldatas.company",
+              country: "$alldatas.country",
+              industry: "$alldatas.industry",
+              marketcap: "$alldatas.marketcap",
+              pe: "$alldatas.pe",
+              price: "$alldatas.price",
+              sector: "$alldatas.sector",
+              ticker: "$alldatas.ticker",
+              volume: "$alldatas.volume",
+            },
+          },
+        ]);
+
+        allStocks = allStocks.concat(batchStocks);
+
+        // Check if there are more documents to process
+        if (batchStocks.length < batchSize) {
+          break;
+        }
+
+        // Increment skip for the next batch
+        skip += batchSize;
+      }
+    }
+
+    // Send only the first 20 items to the front end
+    const slicedData = allStocks.slice(0, 20);
+
+    return res.status(200).send({
+      message: "success",
+      data: slicedData,
+      datacount: allStocks.length,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send({ message: "error" });
+  }
+};
 // Find a single stocks with an stockCode
 exports.findOne = (req, res) => {
   const stockCode = req.query.stockCode;

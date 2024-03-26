@@ -6,6 +6,9 @@ module.exports = (app) => {
   // Retrieve all stocks
   router.post("/", stocks.findAll);
 
+  router.post("/get_page" , stocks.GetPage)
+  router.post("/search_page" , stocks.SearchPage)
+
   // Retrieve stock by stockCode
   router.get("/:stockCode", stocks.findOne);
 
