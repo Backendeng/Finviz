@@ -8,6 +8,7 @@ module.exports = (app) => {
 
   router.post("/get_page" , stocks.GetPage)
   router.post("/search_page" , stocks.SearchPage)
+  router.post("/exclude_search_page" , stocks.ExcludeSearchPage)
 
   // Retrieve stock by stockCode
   router.get("/:stockCode", stocks.findOne);

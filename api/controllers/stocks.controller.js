@@ -192,15 +192,9 @@ exports.GetPage = async (req, res) => {
   //   req.body.exclude_search_value
   // );
   // return;
-  if (
-    req.body.include_search_value.length > 0 ||
-    req.body.exclude_search_value.length > 0
-  ) {
+  if (req.body.include_search_value.length > 0) {
     try {
-      const searchValues =
-        req.body.include_search_value.length > 0
-          ? req.body.include_search_value
-          : req.body.exclude_search_value;
+      const searchValues = req.body.include_search_value;
       // return;
       const regexPatterns = searchValues.map(
         (value) => new RegExp(`${value}`, "i")
@@ -264,7 +258,71 @@ exports.GetPage = async (req, res) => {
       // return;
       // Send only the first 20 items to the front end
 
-      const slicedData = allStocks.slice(20 * Number(getData), 20 * Number(getData) + 20);
+      const slicedData = allStocks.slice(
+        20 * Number(getData),
+        20 * Number(getData) + 20
+      );
+
+      return res.status(200).send({
+        message: "success",
+        data: slicedData,
+        datacount: allStocks.length,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).send({ message: "error" });
+    }
+  } else if (req.body.exclude_search_value.length > 0) {
+    try {
+      const searchValues = req.body.exclude_search_value;
+      const regexPatterns = searchValues.map(
+        (value) => new RegExp(`${value}`, "i")
+      );
+
+      let allStocks = []; // Array to store all stocks
+
+      const batchSize = 100; // Adjust the batch size as needed
+
+      // Fetch documents where sector does not contain any of the search values
+      const batchStocks = await Stocks.aggregate([
+        // Unwind the array field
+        { $unwind: "$alldatas" },
+        // Match documents where the sector does not contain any of the search values
+        {
+          $match: {
+            "alldatas.sector": {
+              $not: {
+                $in: regexPatterns,
+              },
+            },
+          },
+        },
+        // Project to include only the fields from alldatas
+        {
+          $project: {
+            _id: 0,
+            change: "$alldatas.change",
+            company: "$alldatas.company",
+            country: "$alldatas.country",
+            industry: "$alldatas.industry",
+            marketcap: "$alldatas.marketcap",
+            pe: "$alldatas.pe",
+            price: "$alldatas.price",
+            sector: "$alldatas.sector",
+            ticker: "$alldatas.ticker",
+            volume: "$alldatas.volume",
+          },
+        },
+      ]);
+
+      allStocks = batchStocks;
+      // console.log(allStocks);
+      // return;
+      // Send only the first 20 items to the front end
+      const slicedData = allStocks.slice(
+        20 * Number(getData),
+        20 * Number(getData) + 20
+      );
 
       return res.status(200).send({
         message: "success",
@@ -293,7 +351,6 @@ exports.GetPage = async (req, res) => {
 };
 
 exports.SearchPage = async (req, res) => {
-  console.log(req.body.search_value);
   try {
     const searchValues = req.body.search_value;
     const regexPatterns = searchValues.map(
@@ -353,6 +410,66 @@ exports.SearchPage = async (req, res) => {
       }
     }
 
+    // Send only the first 20 items to the front end
+    const slicedData = allStocks.slice(0, 20);
+
+    return res.status(200).send({
+      message: "success",
+      data: slicedData,
+      datacount: allStocks.length,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send({ message: "error" });
+  }
+};
+
+exports.ExcludeSearchPage = async (req, res) => {
+  try {
+    const searchValues = req.body.search_value;
+    const regexPatterns = searchValues.map(
+      (value) => new RegExp(`${value}`, "i")
+    );
+
+    let allStocks = []; // Array to store all stocks
+
+    const batchSize = 100; // Adjust the batch size as needed
+
+    // Fetch documents where sector does not contain any of the search values
+    const batchStocks = await Stocks.aggregate([
+      // Unwind the array field
+      { $unwind: "$alldatas" },
+      // Match documents where the sector does not contain any of the search values
+      {
+        $match: {
+          "alldatas.sector": {
+            $not: {
+              $in: regexPatterns,
+            },
+          },
+        },
+      },
+      // Project to include only the fields from alldatas
+      {
+        $project: {
+          _id: 0,
+          change: "$alldatas.change",
+          company: "$alldatas.company",
+          country: "$alldatas.country",
+          industry: "$alldatas.industry",
+          marketcap: "$alldatas.marketcap",
+          pe: "$alldatas.pe",
+          price: "$alldatas.price",
+          sector: "$alldatas.sector",
+          ticker: "$alldatas.ticker",
+          volume: "$alldatas.volume",
+        },
+      },
+    ]);
+
+    allStocks = batchStocks;
+    // console.log(allStocks);
+    // return;
     // Send only the first 20 items to the front end
     const slicedData = allStocks.slice(0, 20);
 
