@@ -6,7 +6,6 @@ module.exports = (function () {
     const [browser, page] = await initializeBrowser(stockCode);
     try {
       let stockDetails = await page.evaluate(() => {
-        // Select all rows in the table
         const rows = document.querySelectorAll(".styled-table-new tbody tr");
         const data = Array.from(rows).map((row) => {
           // Extract each piece of information based on its position in the row
